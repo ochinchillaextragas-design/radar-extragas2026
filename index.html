@@ -161,6 +161,9 @@
       </div>
     </div>
     <div class="top-actions">
+      <button class="btn ghost" id="btnImportJSON">Importar JSON</button>
+      <input type="file" id="fileImportJSON" accept="application/json" style="display:none;">
+      <button class="btn ghost" id="btnExportJSON">Exportar JSON</button>
       <button class="btn ghost" id="btnExport">Exportar CSV</button>
       <button class="btn primary" id="btnShowForm">+ Cargar registro</button>
     </div>
@@ -292,9 +295,20 @@
 </div>
 
 <script>
-const STORAGE_KEY = 'registros';
+const STORAGE_KEY = 'extragas-radar-registros';
 let registros = [];
 let editandoId = null;
+
+// Competidores nacionales precargados (julio 2026) — se puede seguir escribiendo
+// cualquier otro nombre en el campo, esto es solo para autocompletar más rápido.
+const PRESET_COMPETIDORES = [
+  'Extragas',
+  'YPF Gas',
+  'Amarilla Gas',
+  'Italgas',
+  'Repsol Gas',
+  'Shell Gas'
+];
 
 const $ = (id) => document.getElementById(id);
 
@@ -302,11 +316,17 @@ function hoy(){
   return new Date().toISOString().slice(0,10);
 }
 
+// Guardado 100% local en este navegador (localStorage). No requiere internet
+// ni backend — ideal para GitHub Pages — pero OJO: los datos quedan en ESTE
+// dispositivo/navegador únicamente. Si cargás desde la compu y después abrís
+// el sitio en el celular, vas a ver bases distintas. Usá "Exportar JSON" /
+// "Importar JSON" para pasar los datos de un dispositivo a otro.
 async function cargarDatos(){
   try{
-    const res = await window.storage.get(STORAGE_KEY, true);
-    registros = res ? JSON.parse(res.value) : [];
+    const raw = localStorage.getItem(STORAGE_KEY);
+    registros = raw ? JSON.parse(raw) : [];
   }catch(e){
+    console.error('Error leyendo localStorage', e);
     registros = [];
   }
   render();
@@ -314,10 +334,10 @@ async function cargarDatos(){
 
 async function guardarDatos(){
   try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify(registros), true);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(registros));
   }catch(e){
-    console.error('Error guardando', e);
-    alert('No se pudo guardar el registro. Probá de nuevo.');
+    console.error('Error guardando en localStorage', e);
+    alert('No se pudo guardar el registro. Puede que el navegador tenga el almacenamiento lleno o bloqueado.');
   }
 }
 
@@ -425,11 +445,13 @@ function aplicarFiltros(lista){
 }
 
 function renderMarcasDatalist(){
-  const marcas = [...new Set(registros.map(r => r.marca))].sort();
+  const usadas = registros.map(r => r.marca);
+  const marcas = [...new Set([...PRESET_COMPETIDORES, ...usadas])].sort();
   $('listaMarcas').innerHTML = marcas.map(m => `<option value="${m}">`).join('');
   const sel = $('fl_marca');
   const actual = sel.value;
-  sel.innerHTML = '<option value="">Todos</option>' + marcas.map(m => `<option value="${m}">${m}</option>`).join('');
+  const marcasFiltro = [...new Set(usadas)].sort();
+  sel.innerHTML = '<option value="">Todos</option>' + marcasFiltro.map(m => `<option value="${m}">${m}</option>`).join('');
   sel.value = actual;
 }
 
@@ -538,6 +560,48 @@ function exportarCSV(){
   a.click();
   URL.revokeObjectURL(url);
 }
+
+function exportarJSON(){
+  if(registros.length === 0){ alert('No hay registros para exportar.'); return; }
+  const blob = new Blob([JSON.stringify(registros, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `extragas-radar-${hoy()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importarJSON(file){
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!Array.isArray(data)) throw new Error('Formato inválido');
+      const modo = confirm('Aceptar = FUSIONAR con lo que ya tenés cargado.\nCancelar = REEMPLAZAR todo lo que ya tenés cargado.');
+      if(modo){
+        const idsExistentes = new Set(registros.map(r => r.id));
+        const nuevos = data.filter(r => !idsExistentes.has(r.id));
+        registros = [...registros, ...nuevos];
+      }else{
+        registros = data;
+      }
+      await guardarDatos();
+      render();
+      alert('Importación completa: ' + registros.length + ' registros en total.');
+    }catch(err){
+      alert('El archivo no tiene el formato esperado (debe ser un JSON exportado desde esta misma herramienta).');
+    }
+  };
+  reader.readAsText(file);
+}
+
+$('btnExportJSON').addEventListener('click', exportarJSON);
+$('btnImportJSON').addEventListener('click', () => $('fileImportJSON').click());
+$('fileImportJSON').addEventListener('change', (e) => {
+  if(e.target.files[0]) importarJSON(e.target.files[0]);
+  e.target.value = '';
+});
 
 $('btnShowForm').addEventListener('click', () => abrirForm());
 $('btnCancel').addEventListener('click', cerrarForm);
