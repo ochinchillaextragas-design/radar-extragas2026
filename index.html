@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Extragas Radar — Monitoreo de marca y competencia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --azul:#060E9F;
+    --azul-suave:#e7e9fb;
+    --verde:#00953A;
+    --verde-suave:#e2f5e9;
+    --rojo:#B3261E;
+    --rojo-suave:#fbe9e8;
+    --ambar:#9A6700;
+    --ambar-suave:#fdf3dd;
+    --tinta:#10131c;
+    --gris-700:#3d4257;
+    --gris-500:#6b7086;
+    --gris-300:#c9cbd8;
+    --gris-100:#eef0f6;
+    --fondo:#f7f7fb;
+    --panel:#ffffff;
+    --radio:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--fondo);
+    color:var(--tinta);
+    font-family:'Archivo',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:'Barlow',sans-serif;}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
+
+  /* HEADER */
+  .top{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    gap:16px;flex-wrap:wrap;margin-bottom:26px;
+    border-bottom:3px solid var(--tinta);
+    padding-bottom:18px;
+  }
+  .brandmark{display:flex;align-items:center;gap:12px;}
+  .dot-radar{
+    width:34px;height:34px;border-radius:50%;
+    background:conic-gradient(from 180deg, var(--azul) 0deg, var(--verde) 90deg, transparent 90deg);
+    position:relative;flex-shrink:0;
+  }
+  .dot-radar::after{
+    content:'';position:absolute;inset:9px;border-radius:50%;background:var(--fondo);
+  }
+  .top h1{font-size:28px;font-weight:800;margin:0;letter-spacing:-0.02em;color:var(--tinta);}
+  .top .sub{font-size:13px;color:var(--gris-500);margin-top:2px;}
+  .top-actions{display:flex;gap:10px;}
+  .btn{
+    font-family:'Archivo',sans-serif;font-weight:600;font-size:13.5px;
+    border-radius:10px;border:1.5px solid var(--tinta);
+    padding:9px 16px;cursor:pointer;background:var(--panel);color:var(--tinta);
+    transition:transform .12s ease, background .12s ease;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn.primary{background:var(--azul);border-color:var(--azul);color:#fff;}
+  .btn.ghost{border-color:var(--gris-300);color:var(--gris-700);}
+  .btn:active{transform:translateY(0);}
+  .btn.small{padding:5px 10px;font-size:12px;border-radius:8px;}
+
+  /* SUMMARY */
+  .summary{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px;
+  }
+  @media (max-width:820px){.summary{grid-template-columns:repeat(2,1fr);}}
+  .card{
+    background:var(--panel);border:1px solid var(--gris-100);border-radius:var(--radio);
+    padding:16px 18px;
+  }
+  .card .label{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--gris-500);font-weight:600;}
+  .card .value{font-family:'Barlow',sans-serif;font-size:30px;font-weight:800;margin-top:4px;color:var(--tinta);}
+  .card .foot{font-size:12px;color:var(--gris-500);margin-top:2px;}
+  .bars{display:flex;gap:4px;margin-top:10px;height:8px;border-radius:6px;overflow:hidden;}
+  .bars span{display:block;height:100%;}
+
+  /* FORM */
+  .panel{
+    background:var(--panel);border:1px solid var(--gris-100);border-radius:var(--radio);
+    padding:20px;margin-bottom:22px;
+  }
+  .panel h2{font-size:16px;margin:0 0 14px;font-weight:700;}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  @media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:520px){.grid{grid-template-columns:1fr;}}
+  .field label{
+    display:block;font-size:11.5px;font-weight:600;color:var(--gris-700);
+    margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em;
+  }
+  .field input, .field select, .field textarea{
+    width:100%;font-family:'Archivo',sans-serif;font-size:14px;
+    border:1.5px solid var(--gris-300);border-radius:9px;padding:9px 10px;
+    background:#fff;color:var(--tinta);
+  }
+  .field textarea{resize:vertical;min-height:44px;}
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:none;border-color:var(--azul);box-shadow:0 0 0 3px var(--azul-suave);
+  }
+  .span2{grid-column:span 2;}
+  @media (max-width:520px){.span2{grid-column:span 1;}}
+  .form-footer{display:flex;justify-content:flex-end;margin-top:14px;gap:10px;}
+
+  /* FILTERS */
+  .filters{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
+  .filters .field{min-width:150px;flex:1;}
+  .filters input[type="search"]{min-width:180px;}
+
+  /* TABLE */
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  thead th{
+    text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--gris-500);font-weight:700;padding:8px 10px;border-bottom:2px solid var(--tinta);
+  }
+  tbody td{padding:11px 10px;border-bottom:1px solid var(--gris-100);vertical-align:top;}
+  tbody tr:hover{background:var(--fondo);}
+  .tag{
+    display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;
+    white-space:nowrap;
+  }
+  .tag.pos{background:var(--verde-suave);color:var(--verde);}
+  .tag.neu{background:var(--gris-100);color:var(--gris-700);}
+  .tag.neg{background:var(--rojo-suave);color:var(--rojo);}
+  .tag.marca{background:var(--azul-suave);color:var(--azul);}
+  .tag.comp{background:var(--ambar-suave);color:var(--ambar);}
+  .estado{font-size:12px;font-weight:600;}
+  .estado.pendiente{color:var(--rojo);}
+  .estado.seguimiento{color:var(--ambar);}
+  .estado.resuelto{color:var(--verde);}
+  .row-actions{display:flex;gap:6px;}
+  .row-actions button{
+    background:none;border:none;cursor:pointer;color:var(--gris-500);font-size:12px;
+    text-decoration:underline;padding:0;
+  }
+  .row-actions button:hover{color:var(--rojo);}
+  .empty{
+    text-align:center;padding:50px 20px;color:var(--gris-500);
+  }
+  .empty b{color:var(--tinta);}
+  .resumen-cell{max-width:260px;}
+  .link-cell a{color:var(--azul);font-size:12.5px;}
+  .loading{padding:40px;text-align:center;color:var(--gris-500);font-size:13px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brandmark">
+      <div class="dot-radar"></div>
+      <div>
+        <h1>Extragas Radar</h1>
+        <div class="sub">Monitoreo de marca y competencia — carga manual</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn ghost" id="btnExport">Exportar CSV</button>
+      <button class="btn primary" id="btnShowForm">+ Cargar registro</button>
+    </div>
+  </div>
+
+  <div class="summary" id="summaryCards"></div>
+
+  <div class="panel" id="formPanel" style="display:none;">
+    <h2 id="formTitle">Nuevo registro</h2>
+    <div class="grid">
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" id="f_fecha">
+      </div>
+      <div class="field">
+        <label>Marca / competidor</label>
+        <input type="text" id="f_marca" list="listaMarcas" placeholder="Extragas o nombre del competidor">
+        <datalist id="listaMarcas"></datalist>
+      </div>
+      <div class="field">
+        <label>Tipo de registro</label>
+        <select id="f_tipo">
+          <option value="Mención propia">Mención propia (hablan de Extragas)</option>
+          <option value="Actividad competencia">Actividad de competencia</option>
+          <option value="Promo/Precio">Promo / precio</option>
+          <option value="Reclamo/Crisis">Reclamo / posible crisis</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Canal</label>
+        <select id="f_canal">
+          <option>Instagram</option>
+          <option>Facebook</option>
+          <option>LinkedIn</option>
+          <option>TikTok</option>
+          <option>Google (reseñas/búsqueda)</option>
+          <option>Prensa / medios</option>
+          <option>Boca a boca / punto de venta</option>
+          <option>Otro</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Sentimiento</label>
+        <select id="f_sentimiento">
+          <option value="Positivo">Positivo</option>
+          <option value="Neutro">Neutro</option>
+          <option value="Negativo">Negativo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Estado</label>
+        <select id="f_estado">
+          <option value="Pendiente">Pendiente</option>
+          <option value="En seguimiento">En seguimiento</option>
+          <option value="Resuelto">Resuelto</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Link (opcional)</label>
+        <input type="text" id="f_link" placeholder="https://...">
+      </div>
+      <div class="field">
+        <label>Cargado por</label>
+        <input type="text" id="f_autor" placeholder="Tu nombre">
+      </div>
+      <div class="field span2" style="grid-column:1/-1;">
+        <label>Resumen</label>
+        <textarea id="f_resumen" placeholder="Qué se dijo o qué hizo el competidor, en pocas líneas..."></textarea>
+      </div>
+    </div>
+    <div class="form-footer">
+      <button class="btn ghost" id="btnCancel">Cancelar</button>
+      <button class="btn primary" id="btnSave">Guardar registro</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 style="margin-bottom:12px;">Filtros</h2>
+    <div class="filters">
+      <div class="field">
+        <label>Buscar</label>
+        <input type="search" id="fl_busqueda" placeholder="texto libre...">
+      </div>
+      <div class="field">
+        <label>Marca/competidor</label>
+        <select id="fl_marca"><option value="">Todos</option></select>
+      </div>
+      <div class="field">
+        <label>Tipo</label>
+        <select id="fl_tipo">
+          <option value="">Todos</option>
+          <option>Mención propia</option>
+          <option>Actividad competencia</option>
+          <option>Promo/Precio</option>
+          <option>Reclamo/Crisis</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Sentimiento</label>
+        <select id="fl_sentimiento">
+          <option value="">Todos</option>
+          <option>Positivo</option>
+          <option>Neutro</option>
+          <option>Negativo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Estado</label>
+        <select id="fl_estado">
+          <option value="">Todos</option>
+          <option>Pendiente</option>
+          <option>En seguimiento</option>
+          <option>Resuelto</option>
+        </select>
+      </div>
+      <div class="field" style="flex:0;">
+        <label>&nbsp;</label>
+        <button class="btn ghost small" id="btnLimpiarFiltros" style="padding:9px 14px;">Limpiar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="padding:0;overflow-x:auto;">
+    <div id="tableWrap">
+      <div class="loading">Cargando registros...</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'registros';
+let registros = [];
+let editandoId = null;
+
+const $ = (id) => document.getElementById(id);
+
+function hoy(){
+  return new Date().toISOString().slice(0,10);
+}
+
+async function cargarDatos(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, true);
+    registros = res ? JSON.parse(res.value) : [];
+  }catch(e){
+    registros = [];
+  }
+  render();
+}
+
+async function guardarDatos(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(registros), true);
+  }catch(e){
+    console.error('Error guardando', e);
+    alert('No se pudo guardar el registro. Probá de nuevo.');
+  }
+}
+
+function uid(){
+  return 'r' + Date.now() + Math.random().toString(36).slice(2,7);
+}
+
+function abrirForm(id){
+  editandoId = id || null;
+  $('formPanel').style.display = 'block';
+  if(id){
+    const r = registros.find(x => x.id === id);
+    $('formTitle').textContent = 'Editar registro';
+    $('f_fecha').value = r.fecha;
+    $('f_marca').value = r.marca;
+    $('f_tipo').value = r.tipo;
+    $('f_canal').value = r.canal;
+    $('f_sentimiento').value = r.sentimiento;
+    $('f_estado').value = r.estado;
+    $('f_link').value = r.link || '';
+    $('f_autor').value = r.autor || '';
+    $('f_resumen').value = r.resumen || '';
+  }else{
+    $('formTitle').textContent = 'Nuevo registro';
+    $('f_fecha').value = hoy();
+    $('f_marca').value = '';
+    $('f_tipo').value = 'Mención propia';
+    $('f_canal').value = 'Instagram';
+    $('f_sentimiento').value = 'Neutro';
+    $('f_estado').value = 'Pendiente';
+    $('f_link').value = '';
+    $('f_autor').value = '';
+    $('f_resumen').value = '';
+  }
+  $('formPanel').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function cerrarForm(){
+  $('formPanel').style.display = 'none';
+  editandoId = null;
+}
+
+async function guardarRegistro(){
+  const marca = $('f_marca').value.trim();
+  if(!marca){ alert('Ingresá la marca o competidor.'); return; }
+  const data = {
+    id: editandoId || uid(),
+    fecha: $('f_fecha').value || hoy(),
+    marca,
+    tipo: $('f_tipo').value,
+    canal: $('f_canal').value,
+    sentimiento: $('f_sentimiento').value,
+    estado: $('f_estado').value,
+    link: $('f_link').value.trim(),
+    autor: $('f_autor').value.trim(),
+    resumen: $('f_resumen').value.trim()
+  };
+  if(editandoId){
+    const idx = registros.findIndex(x => x.id === editandoId);
+    registros[idx] = data;
+  }else{
+    registros.unshift(data);
+  }
+  await guardarDatos();
+  cerrarForm();
+  render();
+}
+
+async function borrarRegistro(id){
+  if(!confirm('¿Borrar este registro?')) return;
+  registros = registros.filter(x => x.id !== id);
+  await guardarDatos();
+  render();
+}
+
+function tagSentimiento(s){
+  const cls = s === 'Positivo' ? 'pos' : s === 'Negativo' ? 'neg' : 'neu';
+  return `<span class="tag ${cls}">${s}</span>`;
+}
+function tagMarca(m){
+  const esPropia = m.toLowerCase().includes('extragas');
+  return `<span class="tag ${esPropia ? 'marca' : 'comp'}">${m}</span>`;
+}
+function estadoClass(e){
+  return e === 'Pendiente' ? 'pendiente' : e === 'En seguimiento' ? 'seguimiento' : 'resuelto';
+}
+
+function aplicarFiltros(lista){
+  const busq = $('fl_busqueda').value.trim().toLowerCase();
+  const marca = $('fl_marca').value;
+  const tipo = $('fl_tipo').value;
+  const sent = $('fl_sentimiento').value;
+  const estado = $('fl_estado').value;
+  return lista.filter(r => {
+    if(marca && r.marca !== marca) return false;
+    if(tipo && r.tipo !== tipo) return false;
+    if(sent && r.sentimiento !== sent) return false;
+    if(estado && r.estado !== estado) return false;
+    if(busq){
+      const blob = (r.marca+' '+r.resumen+' '+r.canal).toLowerCase();
+      if(!blob.includes(busq)) return false;
+    }
+    return true;
+  });
+}
+
+function renderMarcasDatalist(){
+  const marcas = [...new Set(registros.map(r => r.marca))].sort();
+  $('listaMarcas').innerHTML = marcas.map(m => `<option value="${m}">`).join('');
+  const sel = $('fl_marca');
+  const actual = sel.value;
+  sel.innerHTML = '<option value="">Todos</option>' + marcas.map(m => `<option value="${m}">${m}</option>`).join('');
+  sel.value = actual;
+}
+
+function renderSummary(){
+  const total = registros.length;
+  const semana = registros.filter(r => {
+    const d = new Date(r.fecha);
+    const diff = (new Date() - d) / (1000*60*60*24);
+    return diff <= 7 && diff >= 0;
+  }).length;
+  const pos = registros.filter(r => r.sentimiento === 'Positivo').length;
+  const neu = registros.filter(r => r.sentimiento === 'Neutro').length;
+  const neg = registros.filter(r => r.sentimiento === 'Negativo').length;
+
+  const conteoMarca = {};
+  registros.forEach(r => { conteoMarca[r.marca] = (conteoMarca[r.marca]||0)+1; });
+  let topCompetidor = '—';
+  let topVal = 0;
+  Object.entries(conteoMarca).forEach(([m,v]) => {
+    if(!m.toLowerCase().includes('extragas') && v > topVal){ topCompetidor = m; topVal = v; }
+  });
+
+  const pct = (n) => total ? Math.round(n/total*100) : 0;
+
+  $('summaryCards').innerHTML = `
+    <div class="card">
+      <div class="label">Total de registros</div>
+      <div class="value">${total}</div>
+      <div class="foot">${semana} en los últimos 7 días</div>
+    </div>
+    <div class="card">
+      <div class="label">Sentimiento general</div>
+      <div class="value">${pct(pos)}% <span style="font-size:16px;color:var(--verde);">pos.</span></div>
+      <div class="bars">
+        <span style="width:${pct(pos)}%;background:var(--verde);"></span>
+        <span style="width:${pct(neu)}%;background:var(--gris-300);"></span>
+        <span style="width:${pct(neg)}%;background:var(--rojo);"></span>
+      </div>
+      <div class="foot">${pos} pos · ${neu} neu · ${neg} neg</div>
+    </div>
+    <div class="card">
+      <div class="label">Competidor más activo</div>
+      <div class="value" style="font-size:22px;">${topCompetidor}</div>
+      <div class="foot">${topVal} registros cargados</div>
+    </div>
+    <div class="card">
+      <div class="label">Pendientes de acción</div>
+      <div class="value">${registros.filter(r=>r.estado==='Pendiente').length}</div>
+      <div class="foot">reclamos o menciones sin resolver</div>
+    </div>
+  `;
+}
+
+function render(){
+  renderSummary();
+  renderMarcasDatalist();
+  const filtrados = aplicarFiltros(registros).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+
+  if(filtrados.length === 0){
+    $('tableWrap').innerHTML = `<div class="empty"><b>No hay registros todavía.</b><br>Usá "+ Cargar registro" para empezar a construir el radar.</div>`;
+    return;
+  }
+
+  const rows = filtrados.map(r => `
+    <tr>
+      <td>${r.fecha}</td>
+      <td>${tagMarca(r.marca)}</td>
+      <td>${r.tipo}</td>
+      <td>${r.canal}</td>
+      <td>${tagSentimiento(r.sentimiento)}</td>
+      <td class="resumen-cell">${r.resumen || '—'}</td>
+      <td class="link-cell">${r.link ? `<a href="${r.link}" target="_blank" rel="noopener">Ver</a>` : '—'}</td>
+      <td><span class="estado ${estadoClass(r.estado)}">${r.estado}</span></td>
+      <td>
+        <div class="row-actions">
+          <button onclick="abrirForm('${r.id}')">Editar</button>
+          <button onclick="borrarRegistro('${r.id}')">Borrar</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  $('tableWrap').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th><th>Marca</th><th>Tipo</th><th>Canal</th>
+          <th>Sentim.</th><th>Resumen</th><th>Link</th><th>Estado</th><th></th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function exportarCSV(){
+  if(registros.length === 0){ alert('No hay registros para exportar.'); return; }
+  const headers = ['Fecha','Marca','Tipo','Canal','Sentimiento','Resumen','Link','Estado','Autor'];
+  const rows = registros.map(r => [r.fecha,r.marca,r.tipo,r.canal,r.sentimiento,(r.resumen||'').replace(/[\n,]/g,' '),r.link,r.estado,r.autor]);
+  const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(','))].join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `extragas-radar-${hoy()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+$('btnShowForm').addEventListener('click', () => abrirForm());
+$('btnCancel').addEventListener('click', cerrarForm);
+$('btnSave').addEventListener('click', guardarRegistro);
+$('btnExport').addEventListener('click', exportarCSV);
+$('btnLimpiarFiltros').addEventListener('click', () => {
+  $('fl_busqueda').value='';
+  $('fl_marca').value='';
+  $('fl_tipo').value='';
+  $('fl_sentimiento').value='';
+  $('fl_estado').value='';
+  render();
+});
+['fl_busqueda','fl_marca','fl_tipo','fl_sentimiento','fl_estado'].forEach(id => {
+  $(id).addEventListener('input', render);
+  $(id).addEventListener('change', render);
+});
+
+cargarDatos();
+</script>
+</body>
+</html>
